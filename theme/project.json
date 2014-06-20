@@ -5,16 +5,17 @@
     },
     "plugins":{
         "cordova": [
-            "org.apache.cordova.camera@0.2.9",
-            "org.apache.cordova.console@0.2.8",
-            "org.apache.cordova.device@0.2.9",
-            "org.apache.cordova.file@1.1.0",
-            "org.apache.cordova.geolocation@0.3.7",
-            "org.apache.cordova.media-capture@0.3.0",
-            "org.apache.cordova.media@0.2.10",
-            "git@github.com:brodysoft/Cordova-SQLitePlugin.git"
+            "org.apache.cordova.camera@0.3.0",
+            "org.apache.cordova.console@0.2.9",
+            "org.apache.cordova.device@0.2.10",
+            "org.apache.cordova.file@1.2.0",
+            "org.apache.cordova.geolocation@0.3.8",
+            "org.apache.cordova.media-capture@0.3.1",
+            "org.apache.cordova.media@0.2.11",
+            "https://github.com/edina/Cordova-SQLitePlugin.git"
         ],
-        "fieldtrip": {
+        "fieldtrip":{
+            "botanitours": "git@github.com:edina/fieldtrip-botanitours.git"
         }
     }
 }
