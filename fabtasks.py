@@ -79,7 +79,10 @@ def convert_db_sqlite():
 @task
 def create_clusters():
     """
-    Create clusters for groups of zoom levels. It needs to be added to the config.ini
+    Create clusters for groups of zoom levels. The number of clusters for each zoom level needs to be added to the config.ini
+    e.g.
+    clusters = {"0-6": 1, "7-9": 5, "9-12": 10, "12-18": 0}
+
     """
     layers = ast.literal_eval(_config('clusters', section='db'))
     for key, cluster in layers.items():
