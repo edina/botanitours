@@ -12,7 +12,7 @@
             "org.apache.cordova.geolocation@0.3.7",
             "org.apache.cordova.media-capture@0.3.0",
             "org.apache.cordova.media@0.2.10",
-            "git@github.com:brodysoft/Cordova-SQLitePlugin.git"
+            "https://github.com/edina/Cordova-SQLitePlugin.git"
         ],
         "fieldtrip": {
         }
