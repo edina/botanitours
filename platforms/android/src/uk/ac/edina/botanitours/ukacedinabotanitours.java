@@ -41,8 +41,11 @@ public class ukacedinabotanitours extends CordovaActivity
         try{
             File dbFile = getDatabasePath("botanitours.db");
             if(!dbFile.exists()){
-                Log.v("info", "Database doesn't exist. Copy it.");
-                this.copy("botanitours.db", dbFile);
+                Log.v("sqlite", "Database doesn't exist. Copy it to : " + dbFile);
+                this.copy(dbFile);
+            }
+            else{
+                Log.v("sqlite", "Database exists: " + dbFile);
             }
         }
         catch (Exception e){
@@ -50,8 +53,8 @@ public class ukacedinabotanitours extends CordovaActivity
         }
     }
 
-    // copy db from assets to to database location
-    private void copy(String file, File dbFile) throws IOException{
+    // copy db from assets to database location
+    private void copy(File dbFile) throws IOException{
         String parentPath = dbFile.getParent();
 
         File filedir = new File(parentPath);
@@ -68,5 +71,6 @@ public class ukacedinabotanitours extends CordovaActivity
         byte[] buf = new byte[1024];
         int len; while ((len = in.read(buf)) > 0) out.write(buf, 0, len);
         in.close(); out.close();
+        Log.v("sqlite", "finished copying");
     }
 }
