@@ -19,6 +19,6 @@ Now build and install the extension:
 ```
 $ make
 $ sudo make install
-$ psql -f /usr/share/pgsql/contrib/kmeans.sql -U postgres -d <database>
+$ psql -f /usr/share/postgresql/9.1/extension/kmeans.sql -U postgres -d <database>
 
 ```
