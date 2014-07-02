@@ -6,6 +6,6 @@ $ unzip kmeans-1.0.0.zip
 $ cd kmeans-1.0.0/
 $ export USE_PGXS=1
 $ make
-$ sudo -E make install
-$ psql -f /usr/share/postgresql/9.1/extension/kmeans.sql -U <user> -d botanitours
+$ sudo make install
+$ psql -f /usr/share/postgresql/9.1/extension/kmeans.sql -U postgres -d <database>
 ```
