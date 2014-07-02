@@ -32,8 +32,8 @@ DAMAGE.
 import ast
 import os
 
-from fabric.api import local, task
-from fabfile import _config, _get_source
+from fabric.api import lcd, local, task
+from fabfile import install_project, _config, _get_runtime, _get_source, _make_dir, _path_join
 
 @task
 def convert_db_json():
@@ -51,6 +51,10 @@ def convert_db_json():
         _config('port', section='db')
     );
     local(cmd)
+
+@task
+def test():
+    _path_join(_get_source()[2], 'www', 'data', '')
 
 @task
 def convert_db_sqlite():
@@ -82,14 +86,15 @@ def create_clusters():
     Create clusters for groups of zoom levels. The number of clusters for each zoom level needs to be added to the config.ini
     e.g.
     clusters = {"0-6": 1, "7-9": 5, "9-12": 10, "12-18": 0}
-
     """
+    data_dir = _path_join(_get_source()[2], 'www', 'data', '')
+
     layers = ast.literal_eval(_config('clusters', section='db'))
     for key, cluster in layers.items():
         zooms = key.split("-")
         for zoom in range(int(zooms[0]), int(zooms[1])+1):
             print zoom
-            local(_create_cluster('cluster', zoom, cluster))
+            local(_create_cluster('{0}cluster'.format(data_dir), zoom, cluster))
 
 def _create_cluster(name, zoom, cluster):
     file_name = "{0}{1}.json".format(name, cluster)
@@ -104,3 +109,34 @@ def _create_cluster(name, zoom, cluster):
         cluster
     )
     return cmd
+
+@task
+def install_botanitours(dist_dir='apps', target='local'):
+    install_project(dist_dir=dist_dir, target='local')
+    dist_path = os.sep.join((os.environ['HOME'], dist_dir))
+    runtime = _get_runtime(target)[1]
+
+    with lcd(dist_path):
+        # spatialite
+        dir_name = 'spatialite-for-android-3.0.1'
+        if not os.path.exists(os.path.join(dist_path, dir_name)):
+            file_name = '{0}.zip'.format(dir_name)
+            url = 'http://www.gaia-gis.it/gaia-sins/spatialite-android/spatialite-for-android-3.0.1.zip'
+            local('wget {0}'.format(url))
+            local('unzip {0}'.format(file_name))
+            local('rm {0}'.format(file_name))
+        from_dir = os.path.join(
+                dir_name,
+                'spatialite-for-android',
+                'spatialite-android',
+                'spatialite-android-library',
+                'libs',
+                '')
+
+        to_dir = os.path.join(
+                runtime,
+                'platforms',
+                'android',
+                'libs',
+                '')
+        local('cp -r {0}* {1}'.format(from_dir, to_dir))

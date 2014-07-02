@@ -20,8 +20,9 @@
 package uk.ac.edina.botanitours;
 
 import android.os.Bundle;
-import org.apache.cordova.*;
 import android.util.Log;
+import org.apache.cordova.Config;
+import org.apache.cordova.CordovaActivity;
 
 import java.io.File;
 import java.io.FileOutputStream;
