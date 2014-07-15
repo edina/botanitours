@@ -33,7 +33,7 @@ import ast
 import os
 
 from fabric.api import lcd, local, task
-from fabfile import install_project, _config, _get_runtime, _get_source, _make_dir, _path_join
+from fabfile import install_project, update_app, _config, _get_runtime, _get_source, _make_dir, _path_join
 
 @task
 def convert_db_json():
@@ -71,7 +71,7 @@ def convert_db_sqlite():
 
     if os.path.exists(file_name):
         local('rm {0}'.format(file_name))
-    cmd = 'ogr2ogr -f SQLite -dsco SPATIALITE=yes {0} "PG:host=localhost dbname={1} user={2} password={3} port={4}" '.format(
+    cmd = 'ogr2ogr -preserve_fid -f SQLite -dsco SPATIALITE=yes {0} "PG:host=localhost dbname={1} user={2} password={3} port={4}" gardens plants position_infos'.format(
         file_name,
         _config('name', section='db'),
         _config('user', section='db'),
@@ -79,6 +79,8 @@ def convert_db_sqlite():
         _config('port', section='db')
     );
     local(cmd)
+
+    update_app()
 
 @task
 def create_clusters():
@@ -140,3 +142,16 @@ def install_botanitours(dist_dir='apps', target='local'):
                 'libs',
                 '')
         local('cp -r {0}* {1}'.format(from_dir, to_dir))
+
+
+@task
+def test1():
+    def func2(arg1, arg2):
+        arg1 = 'wave'
+        arg2[0] = 'goodbye'
+
+    str_var = 'say'
+    l_var = ['hello', 'to', 'jimmy']
+    func2(str_var, l_var)
+
+    print str_var, l_var[0]
