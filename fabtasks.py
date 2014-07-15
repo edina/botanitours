@@ -142,16 +142,3 @@ def install_botanitours(dist_dir='apps', target='local'):
                 'libs',
                 '')
         local('cp -r {0}* {1}'.format(from_dir, to_dir))
-
-
-@task
-def test1():
-    def func2(arg1, arg2):
-        arg1 = 'wave'
-        arg2[0] = 'goodbye'
-
-    str_var = 'say'
-    l_var = ['hello', 'to', 'jimmy']
-    func2(str_var, l_var)
-
-    print str_var, l_var[0]
