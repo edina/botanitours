@@ -71,7 +71,7 @@ def convert_db_sqlite():
 
     if os.path.exists(file_name):
         local('rm {0}'.format(file_name))
-    cmd = 'ogr2ogr -preserve_fid -f SQLite -dsco SPATIALITE=yes {0} "PG:host=localhost dbname={1} user={2} password={3} port={4}" gardens plants position_infos'.format(
+    cmd = 'ogr2ogr -preserve_fid -f SQLite -dsco SPATIALITE=yes {0} "PG:host=localhost dbname={1} user={2} password={3} port={4}" gardens plant_common_names plant_images plants position_infos'.format(
         file_name,
         _config('name', section='db'),
         _config('user', section='db'),
