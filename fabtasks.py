@@ -30,7 +30,9 @@ DAMAGE.
 """
 
 import ast
+import json
 import os
+import psycopg2
 
 from fabric.api import lcd, local, task
 from fabfile import install_project, update_app, _config, _get_runtime, _get_source, _make_dir, _path_join
@@ -96,13 +98,13 @@ def create_clusters():
         zooms = key.split("-")
         for zoom in range(int(zooms[0]), int(zooms[1])+1):
             print zoom
-            local(_create_cluster('{0}cluster'.format(data_dir), zoom, cluster))
+            _create_cluster('{0}cluster'.format(data_dir), zoom, cluster)
 
 def _create_cluster(name, zoom, cluster):
     file_name = "{0}{1}.json".format(name, cluster)
     if os.path.exists(file_name):
         local('rm {0}'.format(file_name))
-    cmd = 'ogr2ogr -f GeoJSON {0} "PG:host=localhost dbname={1} user={2} password={3} port={4}" -sql "SELECT kmeans, count(*), ST_Centroid(ST_Collect(location::geometry)) AS geom FROM ( SELECT kmeans(ARRAY[ST_X(location::geometry), ST_Y(location::geometry)], {5}) OVER (), location FROM position_infos ) AS ksub GROUP BY kmeans ORDER BY kmeans"'.format(
+    cmd = 'ogr2ogr -f GeoJSON {0} "PG:host=localhost dbname={1} user={2} password={3} port={4}" -sql "SELECT count(*), ST_Centroid(ST_Collect(location::geometry)) AS geom FROM ( SELECT kmeans(ARRAY[ST_X(location::geometry), ST_Y(location::geometry)], {5}) OVER (), location FROM position_infos ) AS ksub GROUP BY kmeans ORDER BY kmeans"'.format(
         file_name,
         _config('name', section='db'),
         _config('user', section='db'),
@@ -110,7 +112,45 @@ def _create_cluster(name, zoom, cluster):
         _config('port', section='db'),
         cluster
     )
-    return cmd
+    local(cmd)
+
+    def _get_details_from_point(point, properties):
+        # get details of a point
+        conn = psycopg2.connect("dbname={name} user={user} port={port} password={password}".format(**_config(section='db')))
+        cur = conn.cursor()
+        cur.execute("SELECT positionable_id, positionable_type, year FROM position_infos WHERE location = ST_GeomFromText('POINT(%s %s)')", point)
+        entry = cur.fetchone()
+        properties['id'] = entry[0]
+        properties['type'] = entry[1]
+
+        if entry[2] == None:
+            properties['year'] = 'unknown'
+        else:
+            properties['year'] = entry[2]
+
+        cur.close()
+        conn.close()
+
+    # check if any clusters have a count of 1
+    has_changed = None
+    features = None
+    with open(file_name, 'rw') as f:
+        features = json.load(f)['features']
+        for feature in features:
+            if feature['properties']['count'] == 1:
+                # cluster has a count of 1, get more details
+                has_changed = True
+                _get_details_from_point(
+                    feature['geometry']['coordinates'],
+                    feature['properties'])
+
+    if has_changed:
+        with open(file_name, 'w') as f:
+            out = {
+                'type': 'FeatureCollection',
+                'features': features
+            }
+            json.dump(out, f)
 
 @task
 def install_botanitours(dist_dir='apps', target='local'):
