@@ -45,13 +45,10 @@ def convert_db_json():
     file_name = 'out.json'
     if os.path.exists(file_name):
         local('rm {0}'.format(file_name))
-    cmd = 'ogr2ogr -f GeoJSON {0} "PG:host=localhost dbname={1} user={2} password={3} port={4}" -sql "select id, location from position_infos"'.format(
+    cmd = 'ogr2ogr -f GeoJSON {0} "PG:host=localhost dbname={name} user={user} password={password} port={port}" -sql "select id, location from position_infos"'.format(
         file_name,
-        _config('name', section='db'),
-        _config('user', section='db'),
-        _config('password', section='db'),
-        _config('port', section='db')
-    );
+        **_config(section='db')
+    )
     local(cmd)
 
 @task
@@ -73,13 +70,10 @@ def convert_db_sqlite():
 
     if os.path.exists(file_name):
         local('rm {0}'.format(file_name))
-    cmd = 'ogr2ogr -preserve_fid -f SQLite -dsco SPATIALITE=yes {0} "PG:host=localhost dbname={1} user={2} password={3} port={4}" gardens plant_common_names plant_images plants position_infos'.format(
+    cmd = 'ogr2ogr -preserve_fid -f SQLite -dsco SPATIALITE=yes {0} "PG:host=localhost dbname={name} user={user} password={password} port={port}" gardens plant_common_names plant_images plants position_infos'.format(
         file_name,
-        _config('name', section='db'),
-        _config('user', section='db'),
-        _config('password', section='db'),
-        _config('port', section='db')
-    );
+        **_config(section='db')
+    )
     local(cmd)
 
     update_app()
@@ -95,24 +89,23 @@ def create_clusters():
 
     layers = ast.literal_eval(_config('clusters', section='db'))
     for key, cluster in layers.items():
-        zooms = key.split("-")
-        for zoom in range(int(zooms[0]), int(zooms[1])+1):
-            print zoom
-            _create_cluster('{0}cluster'.format(data_dir), zoom, cluster)
+        # what was zooms ever used for? https://github.com/edina/botanitours/blob/63abdf63fd7558700552f103171d970a75a2848d/fabtasks.py
+        #zooms = key.split("-")
+        #for zoom in range(int(zooms[0]), int(zooms[1])+1):
+        #    _create_cluster('{0}'.format(data_dir), cluster)
+        _create_cluster('{0}'.format(data_dir), cluster)
 
-def _create_cluster(name, zoom, cluster):
-    file_name = "{0}{1}.json".format(name, cluster)
+    # create gardens geojson (non clustered)
+    file_name = os.path.join(data_dir, 'Gardens.json')
     if os.path.exists(file_name):
         local('rm {0}'.format(file_name))
-    cmd = 'ogr2ogr -f GeoJSON {0} "PG:host=localhost dbname={1} user={2} password={3} port={4}" -sql "SELECT count(*), ST_Centroid(ST_Collect(location::geometry)) AS geom FROM ( SELECT kmeans(ARRAY[ST_X(location::geometry), ST_Y(location::geometry)], {5}) OVER (), location FROM position_infos ) AS ksub GROUP BY kmeans ORDER BY kmeans"'.format(
+    cmd = 'ogr2ogr -f GeoJSON {0} "PG:host=localhost dbname={name} user={user} password={password} port={port}" -sql "SELECT positionable_id AS id, positionable_type AS type, location FROM position_infos WHERE positionable_type = \'Garden\'"'.format(
         file_name,
-        _config('name', section='db'),
-        _config('user', section='db'),
-        _config('password', section='db'),
-        _config('port', section='db'),
-        cluster
+        **_config(section='db')
     )
     local(cmd)
+
+def _create_cluster(name, cluster):
 
     def _get_details_from_point(point, properties):
         # get details of a point
@@ -131,26 +124,48 @@ def _create_cluster(name, zoom, cluster):
         cur.close()
         conn.close()
 
-    # check if any clusters have a count of 1
-    has_changed = None
-    features = None
-    with open(file_name, 'rw') as f:
-        features = json.load(f)['features']
-        for feature in features:
-            if feature['properties']['count'] == 1:
-                # cluster has a count of 1, get more details
-                has_changed = True
-                _get_details_from_point(
-                    feature['geometry']['coordinates'],
-                    feature['properties'])
+    filters = ('', 'Plant')
 
-    if has_changed:
-        with open(file_name, 'w') as f:
-            out = {
-                'type': 'FeatureCollection',
-                'features': features
-            }
-            json.dump(out, f)
+    for filter in filters:
+        filter_str = ''
+        if len(filter) > 0:
+            filter_str = "WHERE positionable_type = '{0}'".format(filter)
+
+        file_name = "{0}{1}cluster{2}.json".format(name, filter, cluster)
+        print file_name
+        if os.path.exists(file_name):
+            local('rm {0}'.format(file_name))
+        cmd = 'ogr2ogr -f GeoJSON {0} "PG:host=localhost dbname={1} user={2} password={3} port={4}" -sql "SELECT count(*), ST_Centroid(ST_Collect(location::geometry)) AS geom FROM ( SELECT kmeans(ARRAY[ST_X(location::geometry), ST_Y(location::geometry)], {5}) OVER (), location FROM position_infos {6}) AS ksub GROUP BY kmeans ORDER BY kmeans"'.format(
+            file_name,
+            _config('name', section='db'),
+            _config('user', section='db'),
+            _config('password', section='db'),
+            _config('port', section='db'),
+            cluster,
+            filter_str)
+        local(cmd)
+
+        # check if any clusters have a count of 1
+        has_changed = None
+        features = None
+        with open(file_name, 'rw') as f:
+            features = json.load(f)['features']
+            for feature in features:
+                if feature['properties']['count'] == 1:
+                    # cluster has a count of 1, get more details
+                    has_changed = True
+                    _get_details_from_point(
+                        feature['geometry']['coordinates'],
+                        feature['properties'])
+
+        if has_changed:
+            with open(file_name, 'w') as f:
+                out = {
+                    'type': 'FeatureCollection',
+                    'features': features
+                }
+                json.dump(out, f)
+
 
 @task
 def install_botanitours(dist_dir='apps', target='local'):
