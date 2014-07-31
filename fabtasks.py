@@ -87,12 +87,10 @@ def create_clusters():
     """
     data_dir = _path_join(_get_source()[2], 'www', 'data', '')
 
-    layers = ast.literal_eval(_config('clusters', section='db'))
-    for key, cluster in layers.items():
-        # what was zooms ever used for? https://github.com/edina/botanitours/blob/63abdf63fd7558700552f103171d970a75a2848d/fabtasks.py
-        #zooms = key.split("-")
-        #for zoom in range(int(zooms[0]), int(zooms[1])+1):
-        #    _create_cluster('{0}'.format(data_dir), cluster)
+    layers = ast.literal_eval(_config('clusters', section='app'))
+
+    clusters = set(layers.values())
+    for cluster in clusters:
         _create_cluster('{0}'.format(data_dir), cluster)
 
     # create gardens geojson (non clustered)
