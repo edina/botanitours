@@ -1,7 +1,7 @@
 {
     "versions":{
-        "core": "master",
-        "project": "0.0.0.1"
+        "core": "0.3.0",
+        "project": "0.0.1"
     },
     "plugins":{
         "cordova": [
@@ -12,7 +12,7 @@
             "org.apache.cordova.geolocation@0.3.8",
             "org.apache.cordova.media-capture@0.3.1",
             "org.apache.cordova.media@0.2.11",
-            "https://github.com/edina/android-spatialite.git"
+            "uk.ac.edina.spatialite@0.0.1"
         ],
         "fieldtrip":{
             "botanitours": "git@github.com:edina/fieldtrip-botanitours.git"
