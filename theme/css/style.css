@@ -2,6 +2,14 @@
     background-image: url("images/filter.png");
 }
 
+#poi-filter-popup-popup{
+    width: 60%;
+}
+
 #poi-filter-popup-popup div{
     font-size: 1.1em;
+}
+
+.poi-text-filter{
+    display: none;
 }
