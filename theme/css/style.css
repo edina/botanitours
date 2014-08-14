@@ -3,11 +3,15 @@
 }
 
 #poi-filter-popup-popup{
-    width: 60%;
+    width: 80%;
 }
 
 #poi-filter-popup-popup div{
     font-size: 1.1em;
+}
+
+#poi-text-filter-plants .ui-btn-text {
+    font-size: 12px;
 }
 
 .poi-text-filter{

@@ -1,6 +1,6 @@
 {
     "versions":{
-        "core": "0.3.1",
+        "core": "botanitours",
         "project": "0.0.2"
     },
     "plugins":{
